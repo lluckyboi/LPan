@@ -6,8 +6,8 @@ import (
 	"database/sql"
 )
 
-func NewFile(FileName string, UserId int) error {
-	return dao.AddFile(FileName, UserId)
+func NewFile(FileName string, UserId int, FatherPath string) error {
+	return dao.AddFile(FileName, UserId, FatherPath)
 }
 
 func CheckAuthorityToDownload(FileID, UserID int) (bool, error, model.Private) {

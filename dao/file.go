@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func AddFile(FileName string, UserId int) error {
+func AddFile(FileName string, UserId int, FatherPath string) error {
 	FileId := 0
 	//开启事务
 	tx, err := Db.Begin()
@@ -28,7 +28,7 @@ func AddFile(FileName string, UserId int) error {
 		}
 		return err
 	}
-	_, err = tx.Exec("insert into private(user_id, file_name,file_id)values(?,?,?)", UserId, FileName, FileId)
+	_, err = tx.Exec("insert into private(user_id, file_name,file_id,father_path)values(?,?,?,?)", UserId, FileName, FileId, FatherPath)
 	//提交事务
 	err = tx.Commit()
 	if err != nil {

@@ -17,6 +17,24 @@ import (
 func uploadfile(c *gin.Context) {
 	//获取用户Id
 	UserId := c.MustGet("UserId").(int)
+	//目标虚拟路径
+	DesPath := c.PostForm("DesPath")
+
+	//获取父级虚拟路径
+	Plen := len(DesPath)
+	num := 0
+	var pd int
+	for i := Plen - 1; i >= 0; i-- {
+		if DesPath[i] == '/' {
+			num++
+		}
+		if num == 1 {
+			pd = i
+		} else if num == 2 {
+			break
+		}
+	}
+	FatherPath := DesPath[:pd]
 
 	formFile, header, err := c.Request.FormFile("file")
 	if err != nil {
@@ -48,7 +66,7 @@ func uploadfile(c *gin.Context) {
 
 	log.Printf("%v upload file success", UserId)
 
-	err = service.NewFile(FileName, UserId)
+	err = service.NewFile(FileName, UserId, FatherPath)
 	if err != nil {
 		log.Println(err)
 		tool.RespInternalError(c)
