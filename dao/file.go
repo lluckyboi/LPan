@@ -4,6 +4,7 @@ import (
 	"LPan/model"
 	"database/sql"
 	"log"
+	"time"
 )
 
 func AddFile(FileName string, UserId int, FatherPath, hash string, size int64) error {
@@ -65,4 +66,14 @@ func CheckHash(hash string) (bool, error, int) {
 		return false, err, 0
 	}
 	return true, nil, fileId
+}
+
+func DeletePrivateByUserIdAndFileId(UserId, FileId int) error {
+	_, err := Db.Exec("update private set deleted=? where user_id=? and file_id=?", time.Now(), UserId, FileId)
+	return err
+}
+
+func RecoverPrivateFileByUserIdAndFleId(UserId, FileId int) error {
+	_, err := Db.Exec("update private set deleted=null where user_id=? and file_id=?", UserId, FileId)
+	return err
 }

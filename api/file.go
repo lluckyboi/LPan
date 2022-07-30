@@ -178,6 +178,53 @@ func downloadfile(c *gin.Context) {
 	}
 }
 
-func deletefile() {
+//删除私人仓库中文件
+func deletefile(c *gin.Context) {
+	FileId := tool.StringTOInt(c.Param("file_id"))
+	UserId := c.MustGet("UserId").(int)
+	//权限检查
+	isok, err, _ := service.CheckAuthorityToDownload(FileId, UserId)
+	if err != nil {
+		log.Println("CheckAuthorityToDownload err ", err)
+		tool.RespInternalError(c)
+		return
+	}
+	if !isok {
+		tool.RespErrorWithData(c, "没有删除权限")
+		return
+	}
 
+	err = service.DeleteFileByUserIdAndFileId(FileId, UserId)
+	if err != nil {
+		log.Println("CheckAuthorityToDownload err ", err)
+		tool.RespInternalError(c)
+		return
+	}
+
+	tool.RespSuccessful(c, "删除文件")
+}
+
+//从回收站找回文件
+func recoverfile(c *gin.Context) {
+	FileId := tool.StringTOInt(c.Param("file_id"))
+	UserId := c.MustGet("UserId").(int)
+	//权限检查
+	isok, err, _ := service.CheckAuthorityToDownload(FileId, UserId)
+	if err != nil {
+		log.Println("CheckAuthorityToDownload err ", err)
+		tool.RespInternalError(c)
+		return
+	}
+	if !isok {
+		tool.RespErrorWithData(c, "没有删除权限")
+		return
+	}
+	err = service.RecoverPrivateByUserIdAndFileId(FileId, UserId)
+	if err != nil {
+		log.Println("CheckAuthorityToDownload err ", err)
+		tool.RespInternalError(c)
+		return
+	}
+
+	tool.RespSuccessful(c, "找回文件")
 }

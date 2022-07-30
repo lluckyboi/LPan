@@ -27,10 +27,12 @@ func RUNENGINE() {
 	//修改信息
 	r.POST("/updateinfo", updateinfo)
 
-	fileGroup := r.Group("file")
+	fileGroup := r.Group("file", JWTAuthMiddleware(), RateLimitMiddleware(time.Millisecond*100, 2048))
 	{
-		fileGroup.POST("/upload", JWTAuthMiddleware(), RateLimitMiddleware(time.Millisecond*100, 2048), uploadfile)
-		fileGroup.GET("/download/:file_id", JWTAuthMiddleware(), RateLimitMiddleware(time.Millisecond*100, 2048), downloadfile)
+		fileGroup.POST("/upload", uploadfile)
+		fileGroup.GET("/download/:file_id", downloadfile)
+		fileGroup.DELETE("/delete/:file_id", deletefile)
+		fileGroup.GET("/recover/:file_id", recoverfile)
 	}
 
 	r.Run(":9925")
