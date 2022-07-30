@@ -72,6 +72,27 @@ func uploadfile(c *gin.Context) {
 	}
 	defer file.Close()
 
+	//检查HASH
+	hash := tool.GetHash(FilePath + FileName)
+	bl, err, fileId := service.CheckHash(hash)
+	if err != nil {
+		log.Printf("check hash error : %v", err)
+		tool.RespInternalError(c)
+		return
+	}
+	//如果哈希值存在 秒传
+	if bl {
+		err := service.AddHashedFile(FileName, UserId, FatherPath, fileId)
+		if err != nil {
+			log.Printf("add hashed file error : %v", err)
+			tool.RespInternalError(c)
+			return
+		}
+		tool.RespSuccessful(c, "秒传")
+		return
+	}
+
+	//否则继续上传
 	_, err = io.Copy(file, formFile)
 	if err != nil && err != io.EOF {
 		log.Printf("copy file error : %v", err)
@@ -79,7 +100,16 @@ func uploadfile(c *gin.Context) {
 	}
 	log.Printf("%v upload file success", UserId)
 
-	err = service.NewFile(FileName, UserId, FatherPath)
+	//size
+	info, err := file.Stat()
+	if err != nil {
+		log.Println(err)
+		tool.RespInternalError(c)
+		return
+	}
+	size := info.Size()
+	//入库
+	err = service.NewFile(FileName, UserId, FatherPath, hash, size)
 	if err != nil {
 		log.Println(err)
 		tool.RespInternalError(c)
@@ -133,7 +163,7 @@ func downloadfile(c *gin.Context) {
 			return
 		}
 		defer file.Close()
-		fi, err := file.Stat()
+		info, err := file.Stat()
 		if err != nil {
 			log.Println(err)
 			tool.RespInternalError(c)
@@ -144,7 +174,7 @@ func downloadfile(c *gin.Context) {
 			ReadSeeker: file,
 			r:          ratelimit.Reader(file, bucket),
 		}
-		http.ServeContent(w, req, "./file/"+FileName, fi.ModTime(), lr)
+		http.ServeContent(w, req, "./file/"+FileName, info.ModTime(), lr)
 	}
 }
 
