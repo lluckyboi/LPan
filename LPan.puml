@@ -55,6 +55,9 @@ rectangle 文件修改{
     文件修改--文件改名
 }
 rectangle 文件删除{
+文件删除--过期清除
+}
+rectangle 过期清除{
 }
 rectangle 路径修改{
 }
