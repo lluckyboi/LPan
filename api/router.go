@@ -19,13 +19,13 @@ func RUNENGINE() {
 	r.Use(cors.New(config))
 
 	//发送邮箱验证码
-	r.POST("/getmailac", getmailac)
+	r.POST("/get-mail-ac", getmailac)
 
 	//登录注册
 	r.POST("/login", login)
 
 	//修改信息
-	r.POST("/updateinfo", updateinfo)
+	r.POST("/update-info", updateinfo)
 
 	fileGroup := r.Group("file", JWTAuthMiddleware(), RateLimitMiddleware(time.Millisecond*100, 2048))
 	{
@@ -33,6 +33,8 @@ func RUNENGINE() {
 		fileGroup.GET("/download/:file_id", downloadfile)
 		fileGroup.DELETE("/delete/:file_id", deletefile)
 		fileGroup.GET("/recover/:file_id", recoverfile)
+		fileGroup.POST("/rename/:file_id", renamefile)
+		fileGroup.POST("/modify-path/:file_id", modifypath)
 	}
 
 	r.Run(":9925")

@@ -228,3 +228,33 @@ func recoverfile(c *gin.Context) {
 
 	tool.RespSuccessful(c, "找回文件")
 }
+
+//文件改名
+func renamefile(c *gin.Context) {
+	FileId := tool.StringTOInt(c.Param("file_id"))
+	UserId := c.MustGet("UserId").(int)
+	NewName := c.PostForm("NewName")
+
+	err := service.RenameFileInPrivateByUserIdAndFileId(FileId, UserId, NewName)
+	if err != nil {
+		log.Println("RenameFileInPrivateByUserIdAndFileId err ", err)
+		tool.RespInternalError(c)
+		return
+	}
+	tool.RespSuccessful(c, "改名")
+}
+
+//路径修改
+func modifypath(c *gin.Context) {
+	FileId := tool.StringTOInt(c.Param("file_id"))
+	UserId := c.MustGet("UserId").(int)
+	NewPath := c.PostForm("NewPath")
+
+	err := service.ModifyPathByUserIdAndFileId(UserId, FileId, NewPath)
+	if err != nil {
+		log.Println("ModifyPathByUserIdAndFileId err ", err)
+		tool.RespInternalError(c)
+		return
+	}
+	tool.RespSuccessful(c, "修改路径")
+}

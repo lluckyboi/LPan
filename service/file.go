@@ -43,3 +43,11 @@ func DeleteFileByUserIdAndFileId(FileId, UserId int) error {
 func RecoverPrivateByUserIdAndFileId(FileId, UserId int) error {
 	return dao.RecoverPrivateFileByUserIdAndFleId(UserId, FileId)
 }
+
+func RenameFileInPrivateByUserIdAndFileId(FileId, UserId int, NewName string) error {
+	return dao.RenamePrivateFileByUserIdAndFileId(UserId, FileId, NewName)
+}
+
+func ModifyPathByUserIdAndFileId(UserId, FileId int, NewPath string) error {
+	return dao.UpdatePathByUserIdAndFileId(UserId, FileId, NewPath)
+}

@@ -77,3 +77,13 @@ func RecoverPrivateFileByUserIdAndFleId(UserId, FileId int) error {
 	_, err := Db.Exec("update private set deleted=null where user_id=? and file_id=?", UserId, FileId)
 	return err
 }
+
+func RenamePrivateFileByUserIdAndFileId(UserId, FileId int, NewName string) error {
+	_, err := Db.Exec("update private set file_name = ? where user_id=? and file_id=?", NewName, UserId, FileId)
+	return err
+}
+
+func UpdatePathByUserIdAndFileId(UserId, FileId int, NewPath string) error {
+	_, err := Db.Exec("update private set father_path = ? where user_id=? and file_id=?", NewPath, UserId, FileId)
+	return err
+}
