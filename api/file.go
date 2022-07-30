@@ -256,5 +256,5 @@ func modifypath(c *gin.Context) {
 		tool.RespInternalError(c)
 		return
 	}
-	tool.RespSuccessful(c, "修改路径")
+	tool.RespSuccessful(c, "修改路径 ")
 }

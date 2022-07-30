@@ -10,4 +10,6 @@ func main() {
 	dao.RUNDB()
 	//启动引擎
 	api.RUNENGINE()
+	//每日清理过期文件
+	dao.CleanDeletedFile()
 }
