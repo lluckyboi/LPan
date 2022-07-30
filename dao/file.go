@@ -39,6 +39,12 @@ func AddFile(FileName string, UserId int) error {
 
 func SelectPrivateByUserIdAndFileId(FileID, UserID int) (model.Private, error) {
 	Private := model.Private{}
-	err := Db.QueryRow("select *from private where file_id=?and user_id=? and deleted is null", FileID, UserID).Scan(&Private.UserId, &Private.FileName, &Private.FileId, &Private.Deleted)
+	err := Db.QueryRow("select user_id,file_name,file_id from private where file_id=? and user_id=? and deleted is null", FileID, UserID).Scan(&Private.UserId, &Private.FileName, &Private.FileId)
 	return Private, err
+}
+
+func SelectFileNameByFileId(FileId int) (string, error) {
+	FileName := ""
+	err := Db.QueryRow("select file_name from public_file where file_id=?", FileId).Scan(&FileName)
+	return FileName, err
 }

@@ -23,5 +23,5 @@ func CheckAuthorityToDownload(FileID, UserID int) (bool, error, model.Private) {
 }
 
 func FindTrueNameInPubilcByFileId(FileId int) (string, error) {
-
+	return dao.SelectFileNameByFileId(FileId)
 }

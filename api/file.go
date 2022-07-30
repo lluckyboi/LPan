@@ -14,14 +14,14 @@ import (
 )
 
 //上传文件
-func uploadfile(c *gin.Context){
+func uploadfile(c *gin.Context) {
 	//获取用户Id
-	UserId:=c.MustGet("UserId").(int)
+	UserId := c.MustGet("UserId").(int)
 
 	formFile, header, err := c.Request.FormFile("file")
 	if err != nil {
 		log.Printf("receive formfile error : %v", err)
-		tool.RespErrorWithData(c,"文件为空")
+		tool.RespErrorWithData(c, "文件为空")
 		return
 	}
 	defer formFile.Close()
@@ -31,8 +31,8 @@ func uploadfile(c *gin.Context){
 	extent := arr[len(arr)-1]
 
 	FilePath := "/gopro/src/lpan/file/"
-	FileName:= strconv.FormatInt(time.Now().Unix(), 10) + "." + extent
-	file, err := os.Create(FilePath+FileName)
+	FileName := strconv.FormatInt(time.Now().Unix(), 10) + "." + extent
+	file, err := os.Create(FilePath + FileName)
 	if err != nil {
 		log.Printf("create file error : %v", err)
 		tool.RespInternalError(c)
@@ -46,38 +46,44 @@ func uploadfile(c *gin.Context){
 		tool.RespInternalError(c)
 	}
 
-	log.Printf("%v upload file success",UserId)
+	log.Printf("%v upload file success", UserId)
 
-	err=service.NewFile(FileName,UserId)
-	if err!=nil{
+	err = service.NewFile(FileName, UserId)
+	if err != nil {
 		log.Println(err)
 		tool.RespInternalError(c)
 		return
 	}
 
-	tool.RespSuccessful(c,"上传文件")
+	tool.RespSuccessful(c, "上传文件")
 }
 
 //通过id 下载文件
-func downloadfile(c *gin.Context){
-	FileId:=tool.StringTOInt(c.Param("file_id"))
-	UserID:=c.MustGet("UserID").(int)
+func downloadfile(c *gin.Context) {
+	FileId := tool.StringTOInt(c.Param("file_id"))
+	UserID := c.MustGet("UserId").(int)
 	//校验下载权限
-	isok,err,private:=service.CheckAuthorityToDownload(FileId,UserID)
-	if err!=nil{
-		log.Println(err)
+	isok, err, _ := service.CheckAuthorityToDownload(FileId, UserID)
+	if err != nil {
+		log.Println("CheckAuthorityToDownload err ", err)
 		tool.RespInternalError(c)
 		return
 	}
-	if !isok{
-		tool.RespErrorWithData(c,"没有下载权限")
+	if !isok {
+		tool.RespErrorWithData(c, "没有下载权限")
 		return
 	}
 	//在公共存储中心找到真名
-
-	c.File("./file/"+)
+	FileName, err := service.FindTrueNameInPubilcByFileId(FileId)
+	if err != nil {
+		log.Println("FindTrueNameInPubilcByFileId err ", err)
+		tool.RespInternalError(c)
+		return
+	}
+	//挂载文件
+	c.File("./file/" + FileName)
 }
 
-func deletefile(){
+func deletefile() {
 
 }

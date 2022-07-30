@@ -7,6 +7,8 @@ import (
 
 func RUNENGINE() {
 	r := gin.Default()
+	//限制上传为文件最大512MB
+	r.MaxMultipartMemory = 1 << 29
 
 	//cors解决跨域问题
 	config := cors.DefaultConfig()
