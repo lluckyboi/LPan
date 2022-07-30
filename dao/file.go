@@ -87,3 +87,8 @@ func UpdatePathByUserIdAndFileId(UserId, FileId int, NewPath string) error {
 	_, err := Db.Exec("update private set father_path = ? where user_id=? and file_id=?", NewPath, UserId, FileId)
 	return err
 }
+
+func SetShareByUserIdAndFileId(UserId, FileId int, Expr time.Time) error {
+	_, err := Db.Exec("update private set share=1 ,expr_time=? where user_id=? and file_id=?", Expr, UserId, FileId)
+	return err
+}

@@ -4,6 +4,7 @@ import (
 	"LPan/dao"
 	"LPan/model"
 	"database/sql"
+	"time"
 )
 
 func NewFile(FileName string, UserId int, FatherPath, hash string, size int64) error {
@@ -50,4 +51,8 @@ func RenameFileInPrivateByUserIdAndFileId(FileId, UserId int, NewName string) er
 
 func ModifyPathByUserIdAndFileId(UserId, FileId int, NewPath string) error {
 	return dao.UpdatePathByUserIdAndFileId(UserId, FileId, NewPath)
+}
+
+func SetShareByUserIdAndFileId(UserId, FileId int, Expr time.Time) error {
+	return dao.SetShareByUserIdAndFileId(UserId, FileId, Expr)
 }
