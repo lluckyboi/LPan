@@ -9,14 +9,14 @@ rectangle 用户模块{
     LPan -- 用户模块
 }
 rectangle 邮箱注册{
-    用户模块 -- 邮箱注册
+    用户模块 - 邮箱注册
 }
 database redis[
     redis缓存
 ]
 redis ->验证码有效期
 redis ->验证码每日上限
-邮箱注册 -down-> redis
+邮箱注册 -> redis
 rectangle 验证码有效期{
 }
 rectangle 验证码每日上限{
@@ -31,6 +31,12 @@ rectangle 个人资料详情{
 rectangle 存储管理{
     LPan -- 存储管理
 }
+database mysql[
+mysql存储文件信息
+]
+mysql <- 存储管理
+
+下载管理->mysql:根据信息找到文件
 
 
 
@@ -61,7 +67,7 @@ rectangle 二维码分享{
 
 
 rectangle 下载管理{
-    LPan--下载管理
+    LPan---下载管理
 }
 rectangle 限速{
    下载管理--限速
