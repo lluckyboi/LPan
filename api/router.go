@@ -24,5 +24,11 @@ func RUNENGINE() {
 	//修改信息
 	r.POST("/updateinfo", updateinfo)
 
+	fileGroup := r.Group("file")
+	{
+		fileGroup.POST("/upload", JWTAuthMiddleware(), uploadfile)
+		fileGroup.GET("/download/:file_id", JWTAuthMiddleware(), downloadfile)
+	}
+
 	r.Run(":9925")
 }
