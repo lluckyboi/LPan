@@ -8,27 +8,30 @@ rectangle  LPan
 rectangle 用户模块{
     LPan -- 用户模块
 }
-rectangle 密码登录{
-    用户模块 -- 密码登录
-}
 rectangle 邮箱注册{
     用户模块 -- 邮箱注册
-    邮箱注册 -- 验证码有效期
-    邮箱注册 -- 验证码每日上限
 }
+database redis[
+    redis缓存
+]
+redis ->验证码有效期
+redis ->验证码每日上限
+邮箱注册 -down-> redis
 rectangle 验证码有效期{
 }
 rectangle 验证码每日上限{
 }
-
 rectangle 个人资料详情{
     用户模块  -- 个人资料详情
 }
 
 
+
+
 rectangle 存储管理{
     LPan -- 存储管理
 }
+
 
 
 rectangle 文件管理{
@@ -46,7 +49,6 @@ rectangle 文件上传{
 rectangle 文件共享{
     文件共享 -- 权限管理
 }
-
 rectangle 权限管理 {
     权限管理--加密链接
     权限管理--二维码分享
@@ -55,6 +57,8 @@ rectangle 加密链接{
 }
 rectangle 二维码分享{
 }
+
+
 
 rectangle 下载管理{
     LPan--下载管理
