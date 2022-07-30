@@ -85,7 +85,7 @@ func SendMail(mails []string) (error, bool) {
 		return err, false
 	}
 	for _, j := range mails {
-		//	1.定义验证码和手机号的key的形式
+		//	1.定义验证码和邮箱的key的形式
 		codeKey := "mkey" + vcode
 		mailKey := "mkey" + j
 		//	2.查看用户发送验证码的数量
