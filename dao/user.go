@@ -11,7 +11,7 @@ func NewUser(User model.User) error {
 
 func SelectUserByUserMail(UserMail string) (model.User, error) {
 	User := model.User{}
-	err := Db.QueryRow("select user_id,user_name from user where user_mail=?", UserMail).Scan(&User)
+	err := Db.QueryRow("select user_id,user_name from user where user_mail=?", UserMail).Scan(&User.UserId, &User.UserName)
 	return User, err
 }
 

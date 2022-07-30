@@ -15,7 +15,7 @@ func login(c *gin.Context) {
 	UserMail := c.PostForm("UserMail")
 	AcCode := c.PostForm("AccessCode")
 	//checkAcCode
-	code := dao.RedisDB.Get("key" + AcCode).String()
+	code := dao.RedisDB.Get("mkey" + AcCode).String()
 	log.Println(code)
 
 	//解析

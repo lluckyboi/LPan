@@ -13,7 +13,7 @@ var RedisDB *redis.Client
 
 func RUNDB() {
 	//启用mysql数据库
-	db, err := sql.Open("mysql", "belt:4TaWj47b5YYwcLni@/belt")
+	db, err := sql.Open("mysql", "lpan:pzSyrjstpNzyp8wc@/lpan")
 	if err != nil {
 		log.Fatal(err)
 	}
