@@ -5,7 +5,6 @@ create table private
     file_id      int                     not null,
     deleted      datetime                null comment '删除的时间',
     father_path  varchar(32) default '/' not null,
-    real_deleted tinyint     default 0   not null comment '真正删除，无法找回 该记录会在下一次清理时被删除'
 );
 
 create table public_file
