@@ -4,6 +4,9 @@ import (
 	"LPan/service"
 	"LPan/tool"
 	"github.com/gin-gonic/gin"
+	"github.com/juju/ratelimit"
+	"net/http"
+
 	//"github.com/robfig/cron/v3"
 	"io"
 	"log"
@@ -12,6 +15,17 @@ import (
 	"strings"
 	"time"
 )
+
+//令牌桶速率和容量 500KB
+const (
+	rate     = 500 << 10
+	capacity = 500 << 10
+)
+
+type LimitReaders struct {
+	io.ReadSeeker
+	r io.Reader
+}
 
 //上传文件
 func uploadfile(c *gin.Context) {
@@ -63,7 +77,6 @@ func uploadfile(c *gin.Context) {
 		log.Printf("copy file error : %v", err)
 		tool.RespInternalError(c)
 	}
-
 	log.Printf("%v upload file success", UserId)
 
 	err = service.NewFile(FileName, UserId, FatherPath)
@@ -98,8 +111,41 @@ func downloadfile(c *gin.Context) {
 		tool.RespInternalError(c)
 		return
 	}
-	//挂载文件
-	c.File("./file/" + FileName)
+
+	//检查是否VIP决定是否限速
+	user, err := service.GetUserInfoByUserId(UserID)
+	if err != nil {
+		log.Println(err)
+		tool.RespInternalError(c)
+		return
+	}
+	//VIP不限速
+	if user.Vip == 1 {
+		c.File("./file/" + FileName)
+	} else {
+		//非会员 令牌算法限流安排上
+		req := c.Request
+		w := c.Writer
+		file, err := os.Open("./file/" + FileName)
+		if err != nil {
+			log.Println(err)
+			tool.RespInternalError(c)
+			return
+		}
+		defer file.Close()
+		fi, err := file.Stat()
+		if err != nil {
+			log.Println(err)
+			tool.RespInternalError(c)
+			return
+		}
+		bucket := ratelimit.NewBucketWithRate(rate, capacity)
+		lr := &LimitReaders{
+			ReadSeeker: file,
+			r:          ratelimit.Reader(file, bucket),
+		}
+		http.ServeContent(w, req, "./file/"+FileName, fi.ModTime(), lr)
+	}
 }
 
 func deletefile() {

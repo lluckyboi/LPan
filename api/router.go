@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 func RUNENGINE() {
@@ -28,8 +29,8 @@ func RUNENGINE() {
 
 	fileGroup := r.Group("file")
 	{
-		fileGroup.POST("/upload", JWTAuthMiddleware(), uploadfile)
-		fileGroup.GET("/download/:file_id", JWTAuthMiddleware(), downloadfile)
+		fileGroup.POST("/upload", JWTAuthMiddleware(), RateLimitMiddleware(time.Millisecond*100, 2048), uploadfile)
+		fileGroup.GET("/download/:file_id", JWTAuthMiddleware(), RateLimitMiddleware(time.Millisecond*100, 2048), downloadfile)
 	}
 
 	r.Run(":9925")

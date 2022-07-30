@@ -27,3 +27,7 @@ func GetUserInfoByMail(UserMail string) (model.User, error) {
 func UpdateUserName(UserName string) error {
 	return dao.UpadteUserName(UserName)
 }
+
+func GetUserInfoByUserId(UserId int) (model.User, error) {
+	return dao.SelectUserByUserId(UserId)
+}

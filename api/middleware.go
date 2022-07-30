@@ -3,8 +3,10 @@ package api
 import (
 	"LPan/dao"
 	"LPan/model"
+	"LPan/tool"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/juju/ratelimit"
 	"gopkg.in/gomail.v2"
 	"log"
 	"math/rand"
@@ -161,4 +163,17 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 
 type OAuthAccessResponse struct {
 	AccessToken string `json:"access_token"`
+}
+
+// RateLimitMiddleware 令牌桶限流中间件
+func RateLimitMiddleware(fillInterval time.Duration, cap int64) func(c *gin.Context) {
+	bucket := ratelimit.NewBucket(fillInterval, cap)
+	return func(c *gin.Context) {
+		if bucket.TakeAvailable(1) < 1 {
+			tool.RespErrorWithData(c, "rate limited")
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
 }
