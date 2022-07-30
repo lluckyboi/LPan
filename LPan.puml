@@ -50,7 +50,17 @@ rectangle 文件管理{
    文件管理--回收站系统
 }
 rectangle 文件修改{
+    文件修改--文件删除
+    文件修改--路径修改
+    文件修改--文件改名
 }
+rectangle 文件删除{
+}
+rectangle 路径修改{
+}
+rectangle 文件改名{
+}
+
 rectangle 文件上传{
 }
 rectangle 回收站系统{
