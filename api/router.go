@@ -35,6 +35,7 @@ func RUNENGINE() {
 		fileGroup.GET("/recover/:file_id", recoverfile)
 		fileGroup.POST("/rename/:file_id", renamefile)
 		fileGroup.POST("/modify-path/:file_id", modifypath)
+		fileGroup.POST("/share/:file_id", sharefile)
 	}
 
 	r.Run(":9925")

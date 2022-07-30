@@ -122,7 +122,6 @@ func uploadfile(c *gin.Context) {
 func downloadfile(c *gin.Context) {
 	FileId := tool.StringTOInt(c.Param("file_id"))
 	UserID := c.MustGet("UserId").(int)
-
 	//是否为分享的文件
 	share := c.Query("share")
 	if share == "true" {
@@ -132,19 +131,28 @@ func downloadfile(c *gin.Context) {
 			tool.RespInternalError(c)
 			return
 		}
-		inexpr := tool.StringTOInt(expr)
-		ExprTime := time.Now().Add(time.Duration(inexpr) * time.Hour * 24)
-		err := service.AddHashedFile(strconv.Itoa(FileId), UserID, "/", FileId)
+		//校验
+		isok, err, _ := service.CheckAuthorityToDownload(FileId, UserID)
 		if err != nil {
-			log.Println("AddHashedFile err ", err)
+			log.Println("CheckAuthorityToDownload err ", err)
 			tool.RespInternalError(c)
 			return
 		}
-		err = service.SetShareByUserIdAndFileId(UserID, FileId, ExprTime)
-		if err != nil {
-			log.Println("SetShareByUserIdAndFileId err ", err)
-			tool.RespInternalError(c)
-			return
+		if !isok {
+			inexpr := tool.StringTOInt(expr)
+			ExprTime := time.Now().Add(time.Duration(inexpr) * time.Hour * 24)
+			err := service.AddHashedFile(strconv.Itoa(FileId), UserID, "/", FileId)
+			if err != nil {
+				log.Println("AddHashedFile err ", err)
+				tool.RespInternalError(c)
+				return
+			}
+			err = service.SetShareByUserIdAndFileId(UserID, FileId, ExprTime)
+			if err != nil {
+				log.Println("SetShareByUserIdAndFileId err ", err)
+				tool.RespInternalError(c)
+				return
+			}
 		}
 	}
 
@@ -302,8 +310,7 @@ func sharefile(c *gin.Context) {
 	}
 
 	qrcode.WriteFile("http://39.106.81.229:9925/file/download/"+FileId+"?share=true&expr="+Expr, qrcode.Medium, 256, "./qrcode/"+FileId+".png")
-	c.JSON(200, gin.H{
-		"link": "http://39.106.81.229:9925/file/download/" + FileId + "?share=true&expr=" + Expr,
-	})
 	c.File("./qrcode/" + FileId + ".png")
+
+	//c.JSON(200, gin.H{"link": "http://39.106.81.229:9925/file/download/" + FileId + "?share=true&expr=" + Expr,})
 }
