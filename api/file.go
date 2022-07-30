@@ -312,5 +312,4 @@ func sharefile(c *gin.Context) {
 	qrcode.WriteFile("http://39.106.81.229:9925/file/download/"+FileId+"?share=true&expr="+Expr, qrcode.Medium, 256, "./qrcode/"+FileId+".png")
 	c.File("./qrcode/" + FileId + ".png")
 
-	//c.JSON(200, gin.H{"link": "http://39.106.81.229:9925/file/download/" + FileId + "?share=true&expr=" + Expr,})
 }
