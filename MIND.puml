@@ -1,0 +1,65 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+rectangle  LPan
+
+
+rectangle 用户模块{
+    LPan -- 用户模块
+}
+rectangle 密码登录{
+    用户模块 -- 密码登录
+}
+rectangle 邮箱注册{
+    用户模块 -- 邮箱注册
+}
+rectangle 个人资料详情{
+    用户模块  -- 个人资料详情
+}
+
+
+rectangle 存储管理{
+    LPan -- 存储管理
+}
+
+
+rectangle 文件管理{
+    LPan -- 文件管理
+}
+rectangle 文件管理{
+   文件管理--文件共享
+   文件管理--文件修改
+   文件管理--文件上传
+}
+rectangle 文件修改{
+}
+rectangle 文件上传{
+ }
+rectangle 文件共享{
+    文件共享 -- 权限管理
+}
+
+rectangle 权限管理 {
+    权限管理--加密链接
+    权限管理--二维码分享
+}
+rectangle 加密链接{
+}
+rectangle 二维码分享{
+}
+
+rectangle 下载管理{
+    LPan--下载管理
+}
+rectangle 限速{
+   下载管理--限速
+}
+rectangle 边下边播{
+   下载管理--边下边播
+}
+rectangle 断点续传{
+   下载管理--断点续传
+}
+
+@enduml
