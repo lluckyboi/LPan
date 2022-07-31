@@ -1,0 +1,20 @@
+# yaml 配置
+version: " 1.16.1"
+services:
+  mysql8019:
+    image: "mysql:8.0.19"
+    ports:
+      - "33061:3306"
+    command: "--default-authentication-plugin=mysql_native_password --init-file /data/application/init.sql"
+    environment:
+      #todo fill next line
+      MYSQL_ROOT_PASSWORD: "-"
+      MYSQL_DATABASE: "-"
+      MYSQL_PASSWORD: "-"
+  bubble_app:
+    build: .
+    command: sh -c "./main"
+    depends_on:
+      - mysql8019
+    ports:
+      - "9925:9925"
