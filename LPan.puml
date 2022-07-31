@@ -88,11 +88,13 @@ rectangle 下载管理{
 rectangle 限速{
    下载管理--限速
 }
-rectangle 边下边播{
-   下载管理--边下边播
-}
+
 rectangle 文件秒传{
     文件上传--文件秒传
 }
+rectangle 断点续传{
+    文件上传--断点续传
+}
+
 
 @enduml
