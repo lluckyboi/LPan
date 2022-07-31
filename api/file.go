@@ -80,7 +80,6 @@ func uploadfile(c *gin.Context) {
 		tool.RespInternalError(c)
 		return
 	}
-	log.Println(hash)
 
 	bl, err, fileId := service.CheckHash(hash)
 	if err != nil {
@@ -106,7 +105,7 @@ func uploadfile(c *gin.Context) {
 		log.Printf("copy file error : %v", err)
 		tool.RespInternalError(c)
 	}
-	log.Printf("%v upload file success", UserId)
+	log.Printf("user %v upload file success", UserId)
 
 	//size
 	info, err := file.Stat()
@@ -116,6 +115,7 @@ func uploadfile(c *gin.Context) {
 		return
 	}
 	size := info.Size()
+
 	//入库
 	err = service.NewFile(FileName, UserId, FatherPath, hash, size)
 	if err != nil {
@@ -201,6 +201,7 @@ func uploadfilebysile(c *gin.Context) {
 	//先生成临时文件
 	tempFile := FilePath + "temp.txt"
 	tempf, _ := os.OpenFile(tempFile, os.O_CREATE|os.O_RDWR, os.ModePerm)
+	defer tempf.Close()
 	_, err = tempf.Seek(0, io.SeekStart)
 	if err != nil {
 		log.Printf("Seek error : %v", err)
@@ -234,7 +235,6 @@ func uploadfilebysile(c *gin.Context) {
 		n2, err = formFile.Read(data)
 		if err == io.EOF {
 			log.Println("copy finished")
-			tempf.Close()
 			os.Remove(tempFile)
 			break
 		}
@@ -243,23 +243,13 @@ func uploadfilebysile(c *gin.Context) {
 	n3, _ = file.Write(data[:n2])
 	total += n3
 	//将复制总量，存储到临时文件中
-	_, err = tempf.Seek(0, io.SeekStart)
-	if err != nil {
-		log.Printf("Seek error : %v", err)
-		tool.RespInternalError(c)
-		return
-	}
+	tempf.Seek(0, io.SeekStart)
+
 	_, err = tempf.WriteString(strconv.Itoa(total))
 	if err != nil {
 		log.Printf("WriteString error : %v", err)
 		tool.RespInternalError(c)
 		return
-	}
-
-	_, err = io.Copy(file, formFile)
-	if err != nil && err != io.EOF {
-		log.Printf("copy file error : %v", err)
-		tool.RespInternalError(c)
 	}
 
 	log.Printf("%v upload file success", UserId)
