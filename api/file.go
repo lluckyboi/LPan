@@ -185,6 +185,7 @@ func downloadfile(c *gin.Context) {
 		tool.RespInternalError(c)
 		return
 	}
+
 	//VIP不限速
 	if user.Vip == 1 {
 		c.File("./file/" + FileName)
@@ -295,6 +296,7 @@ func modifypath(c *gin.Context) {
 	tool.RespSuccessful(c, "修改路径 ")
 }
 
+//生成分享二维码 不加密 拿到链接的可以下载
 func sharefile(c *gin.Context) {
 	UserId := c.MustGet("UserId").(int)
 	FileId := c.Param("file_id")
@@ -317,6 +319,7 @@ func sharefile(c *gin.Context) {
 
 }
 
+//生成加密分享二维码
 func sharefilewithsecret(c *gin.Context) {
 	UserId := c.MustGet("UserId").(int)
 	FileId := c.Param("file_id")
