@@ -95,6 +95,9 @@ rectangle 文件秒传{
 rectangle 断点续传{
     文件上传--断点续传
 }
+rectangle 大小限制{
+    文件上传--大小限制
+}
 
 
 @enduml
