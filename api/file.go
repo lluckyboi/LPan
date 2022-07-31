@@ -3,9 +3,12 @@ package api
 import (
 	"LPan/service"
 	"LPan/tool"
+	"bytes"
 	sha12 "crypto/sha1"
 	"encoding/base64"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/juju/ratelimit"
 	"github.com/skip2/go-qrcode"
 	"io"
@@ -26,6 +29,12 @@ const (
 type LimitReaders struct {
 	io.ReadSeeker
 	r io.Reader
+}
+
+var up = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 //上传文件
@@ -366,6 +375,96 @@ func downloadfile(c *gin.Context) {
 		}
 		http.ServeContent(w, req, "./file/"+FileName, info.ModTime(), lr)
 	}
+}
+
+//边下边播
+func downloadbyslice(c *gin.Context) {
+	FileId := tool.StringTOInt(c.Param("file_id"))
+	UserID := c.MustGet("UserId").(int)
+
+	//是否为分享的文件
+	share := c.Query("share")
+	if share == "true" {
+		expr := c.Query("expr")
+		if expr == "" {
+			log.Println("expr get err ")
+			tool.RespInternalError(c)
+			return
+		}
+		//校验
+		isok, err, _ := service.CheckAuthorityToDownload(FileId, UserID)
+		if err != nil {
+			log.Println("CheckAuthorityToDownload err ", err)
+			tool.RespInternalError(c)
+			return
+		}
+		if !isok {
+			inexpr := tool.StringTOInt(expr)
+			ExprTime := time.Now().Add(time.Duration(inexpr) * time.Hour * 24)
+			err := service.AddHashedFile(strconv.Itoa(FileId), UserID, "/", FileId)
+			if err != nil {
+				log.Println("AddHashedFile err ", err)
+				tool.RespInternalError(c)
+				return
+			}
+			err = service.SetShareByUserIdAndFileId(UserID, FileId, ExprTime)
+			if err != nil {
+				log.Println("SetShareByUserIdAndFileId err ", err)
+				tool.RespInternalError(c)
+				return
+			}
+		}
+	}
+
+	//校验下载权限
+	isok, err, _ := service.CheckAuthorityToDownload(FileId, UserID)
+	if err != nil {
+		log.Println("CheckAuthorityToDownload err ", err)
+		tool.RespInternalError(c)
+		return
+	}
+	if !isok {
+		tool.RespErrorWithData(c, "没有下载权限")
+		return
+	}
+	//在公共存储中心找到真名
+	FileName, err := service.FindTrueNameInPubilcByFileId(FileId)
+	if err != nil {
+		log.Println("FindTrueNameInPubilcByFileId err ", err)
+		tool.RespInternalError(c)
+		return
+	}
+
+	buff := new(bytes.Buffer)
+	file, err := os.Open("./file/" + FileName)
+	if err != nil {
+		fmt.Println("open file err=", err)
+	}
+
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			log.Println("file closed err:", err)
+		}
+	}(file)
+
+	_, _ = io.Copy(buff, file)
+
+	msg := buff.Bytes()
+	//升级为ws
+	ws, err := up.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Println("up" + err.Error())
+		return
+	}
+
+	err = ws.WriteMessage(2, msg)
+	if err != nil {
+		log.Println("WriteMessage err:", err)
+		tool.RespInternalError(c)
+		return
+	}
+
 }
 
 //删除私人仓库中文件

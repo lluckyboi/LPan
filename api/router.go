@@ -37,6 +37,7 @@ func RUNENGINE() {
 		fileGroup.POST("/upload", uploadfile)
 		fileGroup.POST("/uploadbysilce", uploadfilebysile)
 		fileGroup.GET("/download/:file_id", downloadfile)
+		fileGroup.GET("/downloadbysilce/:file_id", downloadbyslice)
 		fileGroup.DELETE("/delete/:file_id", deletefile)
 		fileGroup.GET("/recover/:file_id", recoverfile)
 		fileGroup.POST("/rename/:file_id", renamefile)
