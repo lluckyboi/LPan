@@ -74,7 +74,14 @@ func uploadfile(c *gin.Context) {
 	defer file.Close()
 
 	//检查HASH
-	hash := tool.GetHash(FilePath + FileName)
+	hash, err := tool.GetHash(formFile)
+	if err != nil {
+		log.Printf("GetHash error : %v", err)
+		tool.RespInternalError(c)
+		return
+	}
+	log.Println(hash)
+
 	bl, err, fileId := service.CheckHash(hash)
 	if err != nil {
 		log.Printf("check hash error : %v", err)
@@ -118,6 +125,162 @@ func uploadfile(c *gin.Context) {
 	}
 
 	tool.RespSuccessful(c, "上传文件")
+}
+
+//断点续传上传文件
+func uploadfilebysile(c *gin.Context) {
+	//获取用户Id
+	UserId := c.MustGet("UserId").(int)
+	//目标虚拟路径
+	DesPath := c.PostForm("DesPath")
+
+	//获取父级虚拟路径
+	Plen := len(DesPath)
+	num := 0
+	var pd int
+	for i := Plen - 1; i >= 0; i-- {
+		if DesPath[i] == '/' {
+			num++
+		}
+		if num == 1 {
+			pd = i
+		} else if num == 2 {
+			break
+		}
+	}
+	FatherPath := DesPath[:pd]
+
+	formFile, header, err := c.Request.FormFile("file")
+	if err != nil {
+		log.Printf("receive formfile error : %v", err)
+		tool.RespErrorWithData(c, "文件为空")
+		return
+	}
+	defer formFile.Close()
+
+	//获取文件后缀
+	arr := strings.Split(header.Filename, ".")
+	extent := arr[len(arr)-1]
+
+	FilePath := "/gopro/src/lpan/file/"
+	FileName := strconv.FormatInt(time.Now().Unix(), 10) + "." + extent
+	file, err := os.Create(FilePath + FileName)
+	if err != nil {
+		log.Printf("create file error : %v", err)
+		tool.RespInternalError(c)
+		return
+	}
+	defer file.Close()
+
+	//检查HASH
+	hash, err := tool.GetHash(formFile)
+	if err != nil {
+		log.Printf("GetHash error : %v", err)
+		tool.RespInternalError(c)
+		return
+	}
+	bl, err, fileId := service.CheckHash(hash)
+	if err != nil {
+		log.Printf("check hash error : %v", err)
+		tool.RespInternalError(c)
+		return
+	}
+	//如果哈希值存在 秒传
+	if bl {
+		err := service.AddHashedFile(FileName, UserId, FatherPath, fileId)
+		if err != nil {
+			log.Printf("add hashed file error : %v", err)
+			tool.RespInternalError(c)
+			return
+		}
+		tool.RespSuccessful(c, "秒传")
+		return
+	}
+
+	//否则继续断点上传
+	//先生成临时文件
+	tempFile := FilePath + "temp.txt"
+	tempf, _ := os.OpenFile(tempFile, os.O_CREATE|os.O_RDWR, os.ModePerm)
+	_, err = tempf.Seek(0, io.SeekStart)
+	if err != nil {
+		log.Printf("Seek error : %v", err)
+		tool.RespInternalError(c)
+		return
+	}
+
+	buffer := make([]byte, 100, 100)
+	len1, err := tempf.Read(buffer)
+	ctstr := string(buffer[:len1])
+	ct, _ := strconv.ParseInt(ctstr, 10, 64)
+	_, err = formFile.Seek(ct, 0)
+	if err != nil {
+		log.Printf("Seek error : %v", err)
+		tool.RespInternalError(c)
+		return
+	}
+
+	_, err = file.Seek(ct, 0)
+	if err != nil {
+		log.Printf("Seek error : %v", err)
+		tool.RespInternalError(c)
+		return
+	}
+
+	data := make([]byte, 2048, 2048)
+	n2 := -1         // 读取的数据量
+	n3 := -1         //写出的数据量
+	total := int(ct) //读取的总量
+	for {
+		n2, err = formFile.Read(data)
+		if err == io.EOF {
+			log.Println("copy finished")
+			tempf.Close()
+			os.Remove(tempFile)
+			break
+		}
+	}
+	//将数据写入到目标文件
+	n3, _ = file.Write(data[:n2])
+	total += n3
+	//将复制总量，存储到临时文件中
+	_, err = tempf.Seek(0, io.SeekStart)
+	if err != nil {
+		log.Printf("Seek error : %v", err)
+		tool.RespInternalError(c)
+		return
+	}
+	_, err = tempf.WriteString(strconv.Itoa(total))
+	if err != nil {
+		log.Printf("WriteString error : %v", err)
+		tool.RespInternalError(c)
+		return
+	}
+
+	_, err = io.Copy(file, formFile)
+	if err != nil && err != io.EOF {
+		log.Printf("copy file error : %v", err)
+		tool.RespInternalError(c)
+	}
+
+	log.Printf("%v upload file success", UserId)
+
+	//size
+	info, err := file.Stat()
+	if err != nil {
+		log.Println(err)
+		tool.RespInternalError(c)
+		return
+	}
+	size := info.Size()
+	//入库
+	err = service.NewFile(FileName, UserId, FatherPath, hash, size)
+	if err != nil {
+		log.Println(err)
+		tool.RespInternalError(c)
+		return
+	}
+
+	tool.RespSuccessful(c, "断点上传文件")
 }
 
 //通过id 下载文件

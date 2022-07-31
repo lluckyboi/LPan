@@ -35,6 +35,7 @@ func RUNENGINE() {
 	fileGroup := r.Group("file", JWTAuthMiddleware(), RateLimitMiddleware(time.Millisecond*100, 2048))
 	{
 		fileGroup.POST("/upload", uploadfile)
+		fileGroup.POST("/uploadbysilce", uploadfilebysile)
 		fileGroup.GET("/download/:file_id", downloadfile)
 		fileGroup.DELETE("/delete/:file_id", deletefile)
 		fileGroup.GET("/recover/:file_id", recoverfile)
