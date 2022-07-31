@@ -165,12 +165,12 @@ type OAuthAccessResponse struct {
 	AccessToken string `json:"access_token"`
 }
 
-// RateLimitMiddleware 令牌桶限流中间件
-func RateLimitMiddleware(fillInterval time.Duration, cap int64) func(c *gin.Context) {
-	bucket := ratelimit.NewBucket(fillInterval, cap)
+// RateLimitBuck 令牌桶限流
+func RateLimitBuck(fillspeed time.Duration, cap int64) func(c *gin.Context) {
+	bct := ratelimit.NewBucket(fillspeed, cap)
 	return func(c *gin.Context) {
-		if bucket.TakeAvailable(1) < 1 {
-			tool.RespErrorWithData(c, "rate limited")
+		if bct.TakeAvailable(1)-1 < 0 {
+			tool.RespErrorWithData(c, "speed was limited")
 			c.Abort()
 			return
 		}

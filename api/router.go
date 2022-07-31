@@ -32,7 +32,7 @@ func RUNENGINE() {
 	//修改信息
 	r.POST("/update-info", updateinfo)
 
-	fileGroup := r.Group("file", JWTAuthMiddleware(), RateLimitMiddleware(time.Millisecond*100, 2048))
+	fileGroup := r.Group("file", JWTAuthMiddleware(), RateLimitBuck(time.Millisecond*100, 2048))
 	{
 		fileGroup.POST("/upload", uploadfile)
 		fileGroup.POST("/uploadbysilce", uploadfilebysile)
@@ -47,7 +47,7 @@ func RUNENGINE() {
 	}
 
 	//解密链接重定向
-	r.GET("/secret/:val", JWTAuthMiddleware(), RateLimitMiddleware(time.Millisecond*100, 2048), func(c *gin.Context) {
+	r.GET("/secret/:val", JWTAuthMiddleware(), RateLimitBuck(time.Millisecond*100, 2048), func(c *gin.Context) {
 		val := c.Param("val")
 		path, err := service.GetOriginBySec(val)
 		if err != nil {
