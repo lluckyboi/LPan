@@ -92,3 +92,14 @@ func SetShareByUserIdAndFileId(UserId, FileId int, Expr time.Time) error {
 	_, err := Db.Exec("update private set share=1 ,expr_time=? where user_id=? and file_id=?", Expr, UserId, FileId)
 	return err
 }
+
+func InsertSha1AndLinkMap(sha1, link string) error {
+	_, err := Db.Exec("insert into url (origin, sha1) values (?,?);", link, sha1)
+	return err
+}
+
+func SelectOriginBySha1(sha1 string) (string, error) {
+	ori := ""
+	err := Db.QueryRow("select origin from url where sha1=?", sha1).Scan(&ori)
+	return ori, err
+}

@@ -56,3 +56,11 @@ func ModifyPathByUserIdAndFileId(UserId, FileId int, NewPath string) error {
 func SetShareByUserIdAndFileId(UserId, FileId int, Expr time.Time) error {
 	return dao.SetShareByUserIdAndFileId(UserId, FileId, Expr)
 }
+
+func AddSha1AndLinkMap(sha1, link string) error {
+	return dao.InsertSha1AndLinkMap(sha1, link)
+}
+
+func GetOriginBySec(sec string) (string, error) {
+	return dao.SelectOriginBySha1(sec)
+}

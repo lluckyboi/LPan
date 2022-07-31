@@ -1,8 +1,13 @@
 package api
 
 import (
+	"LPan/service"
+	"LPan/tool"
+	"database/sql"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"log"
+	"net/http"
 	"time"
 )
 
@@ -36,7 +41,26 @@ func RUNENGINE() {
 		fileGroup.POST("/rename/:file_id", renamefile)
 		fileGroup.POST("/modify-path/:file_id", modifypath)
 		fileGroup.POST("/share/:file_id", sharefile)
+		fileGroup.POST("/share/secret/:file_id", sharefilewithsecret)
 	}
+
+	//解密链接重定向
+	r.GET("/secret/:val", JWTAuthMiddleware(), RateLimitMiddleware(time.Millisecond*100, 2048), func(c *gin.Context) {
+		val := c.Param("val")
+		path, err := service.GetOriginBySec(val)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				c.JSON(404, gin.H{
+					"info": "no such link",
+				})
+				return
+			}
+			log.Println(err)
+			tool.RespInternalError(c)
+			return
+		}
+		c.Redirect(http.StatusMovedPermanently, "http://39.106.81.229:9925/"+path)
+	})
 
 	r.Run(":9925")
 }

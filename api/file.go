@@ -3,6 +3,8 @@ package api
 import (
 	"LPan/service"
 	"LPan/tool"
+	sha12 "crypto/sha1"
+	"encoding/base64"
 	"github.com/gin-gonic/gin"
 	"github.com/juju/ratelimit"
 	"github.com/skip2/go-qrcode"
@@ -122,6 +124,7 @@ func uploadfile(c *gin.Context) {
 func downloadfile(c *gin.Context) {
 	FileId := tool.StringTOInt(c.Param("file_id"))
 	UserID := c.MustGet("UserId").(int)
+
 	//是否为分享的文件
 	share := c.Query("share")
 	if share == "true" {
@@ -310,6 +313,40 @@ func sharefile(c *gin.Context) {
 	}
 
 	qrcode.WriteFile("http://39.106.81.229:9925/file/download/"+FileId+"?share=true&expr="+Expr, qrcode.Medium, 256, "./qrcode/"+FileId+".png")
+	c.File("./qrcode/" + FileId + ".png")
+
+}
+
+func sharefilewithsecret(c *gin.Context) {
+	UserId := c.MustGet("UserId").(int)
+	FileId := c.Param("file_id")
+	Expr := c.PostForm("expr_time")
+
+	//校验权限
+	isok, err, _ := service.CheckAuthorityToDownload(tool.StringTOInt(FileId), UserId)
+	if err != nil {
+		log.Println("CheckAuthorityToDownload err ", err)
+		tool.RespInternalError(c)
+		return
+	}
+	if !isok {
+		tool.RespErrorWithData(c, "没有分享权限")
+		return
+	}
+	link := "file/download/" + FileId + "?share=true&expr=" + Expr
+	sha1 := sha12.New()
+	io.WriteString(sha1, link)
+	res := base64.StdEncoding.EncodeToString(sha1.Sum(nil))
+
+	//入库
+	err = service.AddSha1AndLinkMap(res, link)
+	if err != nil {
+		log.Println("AddSha1AndLinkMap err ", err)
+		tool.RespInternalError(c)
+		return
+	}
+
+	qrcode.WriteFile("http://39.106.81.229:9925/secert/"+res, qrcode.Medium, 256, "./qrcode/"+FileId+".png")
 	c.File("./qrcode/" + FileId + ".png")
 
 }
