@@ -13,7 +13,7 @@
 - [x] **Dockerfile**进行docker部署
 - [x] **Docker-compose**模式部署
 
-## 🚀架构
+## 🚀架构与功能实现
 
 设计思路是每个哈希值不同的文件挂载在服务器，数据库存储所有文件的信息和用户与文件ID的映射
 
@@ -117,6 +117,9 @@ r.GET("/secret/:val", JWTAuthMiddleware(), RateLimitMiddleware(time.Millisecond*
 
 加密的链接会有一个前缀，所有加密的链接都由这个接口处理，接口拿到密文后解密重定向
 
+- **定时清理**
+
+通过**cron定时任务**，每日清理回收站过期与删除到期的记录
 
 
 ## 📄Referrence
